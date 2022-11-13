@@ -17,5 +17,7 @@ use App\Http\Controllers\API\AuthController;
 
 Route::controller(AuthController::class)->group(function(){
     Route::post('login', 'login');
+    Route::post('login-using-firebase', 'loginFirebase');
+    Route::post('get-user-by-phone', 'getUserByPhone');
 });
 
