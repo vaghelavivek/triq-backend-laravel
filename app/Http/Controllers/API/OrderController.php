@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Service;
 use App\Models\ServiceDocument;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Storage;
@@ -15,13 +15,13 @@ use Illuminate\Http\File;
 use Illuminate\Support\Facades\Auth;
 
 
-class ServiceController extends Controller
+class OrderController extends Controller
 {
-    public function getServices()
+    public function getOrders()
     {
         try {
-            $services = Service::where('user_id',Auth::id())->get();
-            return sendResponse(['services' => $services],'Service data fetched');
+            $orders = Order::where('user_id',Auth::id())->get();
+            return sendResponse(['orders' => $orders],'Service data fetched');
         } catch (\Exception $e) {
             return sendError($e->getMessage(), 500);
         }
@@ -122,23 +122,6 @@ class ServiceController extends Controller
             if($service)
             return sendResponse(['service' => $service],'Service data fetched');
             else
-            return sendError('No Service data found', 200);
-        } catch (\Exception $e) {
-            return sendError($e->getMessage(), 500);
-        }
-    }
-    public function getServiceByUserId($user_id)
-    {
-        try {
-            $user = User::find($user_id);
-            if($user){
-                // $services = Service::where('country',$user->country)->get();
-                $services = Service::get();
-                if($services)
-                return sendResponse(['services' => $services],'Service data fetched');
-                else
-                return sendError('No Service data found', 200);
-            }
             return sendError('No Service data found', 200);
         } catch (\Exception $e) {
             return sendError($e->getMessage(), 500);
