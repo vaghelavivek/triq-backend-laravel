@@ -194,8 +194,8 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        Kreait\Laravel\Firebase\ServiceProvider::class
-
+        Kreait\Laravel\Firebase\ServiceProvider::class,
+        'Intervention\Image\ImageServiceProvider'
     ],
 
     /*
@@ -211,6 +211,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'ExampleClass' => App\Example\ExampleClass::class,
+        'Image' => 'Intervention\Image\Facades\Image'
     ])->toArray(),
 
 ];

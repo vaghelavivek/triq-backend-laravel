@@ -24,5 +24,14 @@ class AdminUserSeeder extends Seeder
             'role_id'=>1,
             'password'=>Hash::make('admin'),
         ]);
+        
+        $user=User::create([
+            'name'=>'Demo Admin',
+            'email'=>'demo@admin.com',
+            'phone'=>9624680752,
+            'email_verified_at'=> now(),
+            'role_id'=>1,
+            'password'=>Hash::make('admin'),
+        ]);
     }
 }
