@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\OrderDocument;
 use App\Models\Service;
 use App\Models\ServiceDocument;
 use Illuminate\Http\Request;
@@ -30,7 +31,6 @@ class OrderController extends Controller
     public function addOrder(Request $request){
         DB::beginTransaction();
         try{
-            return $request;
             $validator = Validator::make($request->all(), [
                 'user_id' => 'required',
                 'service_id' => 'required',
@@ -39,47 +39,49 @@ class OrderController extends Controller
             if ($validator->fails()) {
                 return sendError($validator->errors(),403);
             }
-            // if($request->has('id')){
-            //     $service_id = (int)$request->id;
-            //     $service= Service::find($service_id);
-            //     if(!$service)
-            //     $service= new Service();
-            // }else{
-            //     $service= new Service();
-            // }
-            // $service->user_id=Auth::id();
-            // $service->title=$request->title;
-            // $service->description=$request->description;
-            // $service->country=$request->country;
-            // $service->price=$request->price;
-            // $service->tenure=$request->tenure;
-            // if($request->hasfile('service_image')){
-            //     if($service->service_image){
-            //         $path = 'storage/'.$service->service_image;
-            //         if(file_exists(public_path($path))){
-            //             unlink(public_path($path));
-            //         }
-            //     }
-            //     $logofile=$this->upload('images/service_image', 'service_image');
-            //     $service->service_image  = $logofile;
-            // }
-            // if($service->save()){
-            //     $document_names = json_decode($request->document_names);
-            //     foreach($document_names as $doc_data){
-            //         if($doc_data->id){
-            //             $doc = ServiceDocument::find($doc_data->id);
-            //             if(!$doc)
-            //             $doc = new ServiceDocument();
-            //         }else{
-            //             $doc = new ServiceDocument();
-            //         }
-            //         $doc->service_id = $service->id;
-            //         $doc->name = $doc_data->name;
-            //         $doc->save();
-            //     }
-            // }
+            if($request->has('id')){
+                $order_id = (int)$request->id;
+                $order= Order::find($order_id);
+                if(!$order)
+                $order= new Order();
+            }else{
+                $order= new Order();
+            }
+            $order->user_id= $request->user_id ? (int)$request->user_id : Auth::id();
+            $order->service_id= (int)$request->service_id;
+            $order->amount= (float)$request->amount;
+            $order->tax= (float)$request->tax;
+            $order->final_amount= (float)$request->final_amount;
+            $order->payment_status= (float)$request->payment_status;
+            $order->service_status= (float)$request->service_status;
+            if($order->save()){
+                $order_documents = json_decode($request->order_documents);
+                return $order_documents;
+                foreach($order_documents as $doc_data){
+                    if($doc_data->id){
+                        $doc = OrderDocument::find($doc_data->id);
+                        if(!$doc)
+                        $doc = new OrderDocument();
+                    }else{
+                        $doc = new OrderDocument();
+                    }
+                    $doc->order_id = $doc_data->order_id;
+                    $doc->service_documents_id = $doc_data->service_documents_id;
+                    if($request->hasfile('uploaded_file')){
+                        if($doc->uploaded_file){
+                            $path = 'storage/'.$doc->uploaded_file;
+                            if(file_exists(public_path($path))){
+                                unlink(public_path($path));
+                            }
+                        }
+                        $file_data=$this->upload('images/uploaded_file', 'uploaded_file');
+                        $doc->uploaded_file  = $file_data;
+                    }
+                    $doc->save();
+                }
+            }
             DB::commit();
-            return sendResponse(['service' => $service],'Service Created', 200);
+            return sendResponse(['order' => $order],'Service Created', 200);
         } catch (\Exception $e) {
             DB::rollback();
             return sendError($e->getMessage(),500);
