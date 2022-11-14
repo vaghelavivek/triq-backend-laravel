@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\ServiceController;
+use App\Http\Controllers\API\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +25,6 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::group(['middleware' => ['auth:api']], function () {
-    //Services Routes
     Route::controller(ServiceController::class)->group(function () {
         Route::get('service/get-services', 'getServices');
         Route::post('service/add-service', 'addService');
@@ -41,5 +41,14 @@ Route::group(['middleware' => ['auth:api']], function () {
         Route::post('order/update-order', 'updateOrder');
         Route::get('order/delete-order/{order_id}', 'deleteOrder');
         Route::get('order/get-order-by-id/{order_id}', 'getOrderById');
+    });
+    Route::group(['prefix' => 'user', 'middleware' => ['checkRole:super-admin']], function () {
+        Route::controller(UserController::class)->group(function () {
+            Route::post('add-user', 'addUser');
+            Route::post('update-user', 'updateUser');
+            Route::get('get-user-by-id/{id}', 'getUserById');
+            Route::get('get-users', 'getAllUsers');
+            Route::post('delete-user', 'deleteUser');
+        });
     });
 });
