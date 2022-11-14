@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\ServiceDocument;
 use App\Models\User;
+use App\Models\UserBusiness;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Storage;
@@ -130,10 +131,10 @@ class ServiceController extends Controller
     public function getServiceByUserId($user_id)
     {
         try {
-            $user = User::find($user_id);
-            if($user){
-                // $services = Service::where('country',$user->country)->get();
-                $services = Service::get();
+            $user_business= UserBusiness::where('user_id',$user_id)->first();
+            if($user_business){
+                $services = Service::where('country',$user_business->country)->get();
+                // $services = Service::get();
                 if($services)
                 return sendResponse(['services' => $services],'Service data fetched');
                 else

@@ -27,55 +27,57 @@ class OrderController extends Controller
         }
     }
 
-    public function addService(Request $request){
+    public function addOrder(Request $request){
         DB::beginTransaction();
         try{
+            return $request;
             $validator = Validator::make($request->all(), [
-                'title' => 'required',
-                'price' => 'required',
+                'user_id' => 'required',
+                'service_id' => 'required',
+                'amount' => 'required',
             ]);
             if ($validator->fails()) {
                 return sendError($validator->errors(),403);
             }
-            if($request->has('id')){
-                $service_id = (int)$request->id;
-                $service= Service::find($service_id);
-                if(!$service)
-                $service= new Service();
-            }else{
-                $service= new Service();
-            }
-            $service->user_id=Auth::id();
-            $service->title=$request->title;
-            $service->description=$request->description;
-            $service->country=$request->country;
-            $service->price=$request->price;
-            $service->tenure=$request->tenure;
-            if($request->hasfile('service_image')){
-                if($service->service_image){
-                    $path = 'storage/'.$service->service_image;
-                    if(file_exists(public_path($path))){
-                        unlink(public_path($path));
-                    }
-                }
-                $logofile=$this->upload('images/service_image', 'service_image');
-                $service->service_image  = $logofile;
-            }
-            if($service->save()){
-                $document_names = json_decode($request->document_names);
-                foreach($document_names as $doc_data){
-                    if($doc_data->id){
-                        $doc = ServiceDocument::find($doc_data->id);
-                        if(!$doc)
-                        $doc = new ServiceDocument();
-                    }else{
-                        $doc = new ServiceDocument();
-                    }
-                    $doc->service_id = $service->id;
-                    $doc->name = $doc_data->name;
-                    $doc->save();
-                }
-            }
+            // if($request->has('id')){
+            //     $service_id = (int)$request->id;
+            //     $service= Service::find($service_id);
+            //     if(!$service)
+            //     $service= new Service();
+            // }else{
+            //     $service= new Service();
+            // }
+            // $service->user_id=Auth::id();
+            // $service->title=$request->title;
+            // $service->description=$request->description;
+            // $service->country=$request->country;
+            // $service->price=$request->price;
+            // $service->tenure=$request->tenure;
+            // if($request->hasfile('service_image')){
+            //     if($service->service_image){
+            //         $path = 'storage/'.$service->service_image;
+            //         if(file_exists(public_path($path))){
+            //             unlink(public_path($path));
+            //         }
+            //     }
+            //     $logofile=$this->upload('images/service_image', 'service_image');
+            //     $service->service_image  = $logofile;
+            // }
+            // if($service->save()){
+            //     $document_names = json_decode($request->document_names);
+            //     foreach($document_names as $doc_data){
+            //         if($doc_data->id){
+            //             $doc = ServiceDocument::find($doc_data->id);
+            //             if(!$doc)
+            //             $doc = new ServiceDocument();
+            //         }else{
+            //             $doc = new ServiceDocument();
+            //         }
+            //         $doc->service_id = $service->id;
+            //         $doc->name = $doc_data->name;
+            //         $doc->save();
+            //     }
+            // }
             DB::commit();
             return sendResponse(['service' => $service],'Service Created', 200);
         } catch (\Exception $e) {
