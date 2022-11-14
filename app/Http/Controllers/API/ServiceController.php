@@ -14,7 +14,7 @@ use Image;
 use DB;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Arr;
 
 class ServiceController extends Controller
 {
@@ -64,6 +64,10 @@ class ServiceController extends Controller
             }
             if($service->save()){
                 $document_names = json_decode($request->document_names);
+                $document_ids=Arr::pluck($document_names, 'id');
+                if($document_ids && count($document_ids)){
+                        ServiceDocument::where('service_id',$service->id)->whereNotIn('id',$document_ids)->delete();
+                }
                 foreach($document_names as $doc_data){
                     if($doc_data->id){
                         $doc = ServiceDocument::find($doc_data->id);
