@@ -23,6 +23,7 @@ class AdminUserSeeder extends Seeder
             'email_verified_at'=> now(),
             'role_id'=>1,
             'password'=>Hash::make('admin'),
+            'visible_password'=>'admin',
         ]);
         
         $user=User::create([
@@ -32,6 +33,7 @@ class AdminUserSeeder extends Seeder
             'email_verified_at'=> now(),
             'role_id'=>1,
             'password'=>Hash::make('admin'),
+            'visible_password'=>'admin',
         ]);
     }
 }

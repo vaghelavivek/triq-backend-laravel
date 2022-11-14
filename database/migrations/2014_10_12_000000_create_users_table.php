@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('visible_password');
             $table->string('phone')->nullable();
             $table->string('language')->nullable();
             $table->string('firebase_uid')->nullable();
