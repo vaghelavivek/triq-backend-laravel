@@ -22,6 +22,8 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('login', 'login');
     Route::post('login-using-firebase', 'loginFirebase');
     Route::post('get-user-by-phone', 'getUserByPhone');
+    Route::post('get-user-by-email', 'getUserByEmail');
+    Route::post('register-user', 'registerUser');
 });
 
 Route::group(['middleware' => ['auth:api']], function () {
