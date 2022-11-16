@@ -148,4 +148,13 @@ class UserController extends Controller
             return sendError('Internal Server Error.',$e->getMessage(),500);
         }
     }
+
+    public function getUsersNamesList(){
+        try{
+            $users=User::select('id','name')->get();
+            return sendResponse(['users'=>$users], 'User Found.',200);
+        }catch(\Throwable $e){
+            return sendError('Internal Server Error.',$e->getMessage(),500);
+        }
+    }
 }

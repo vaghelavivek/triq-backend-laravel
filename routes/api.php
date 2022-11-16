@@ -49,6 +49,8 @@ Route::group(['middleware' => ['auth:api']], function () {
             Route::get('get-user-by-id/{id}', 'getUserById');
             Route::get('get-users', 'getAllUsers');
             Route::post('delete-user', 'deleteUser');
+            Route::get('get-user-names-list', 'getUsersNamesList');
+
         });
     });
 });
