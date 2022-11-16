@@ -113,4 +113,70 @@ class AuthController extends Controller
             return sendError('Internal Server Error.',$e->getMessage(),500);
         }
     }
+    public function getUserByEmail(Request $request){
+        try{
+            $validator = Validator::make($request->all(), [
+                'email' => 'required',
+                'phone' => 'required',
+            ]);
+            if($validator->fails()){
+                return sendError('Validation Error.', $validator->errors(),422);       
+            }
+            $user=User::where('email',$request->email)->orWhere('phone',$request->phone)->first();
+            if($user){
+                if($user->email == $request->email && $user->phone == $request->phone){
+                    return sendError('The email has already been taken <br> The phone has already been taken.', ['error'=>'user found'],200);
+                }else if($user->email == $request->email){
+                    return sendError('The email has already been taken.', ['error'=>'user found.'],200);
+                }else if($user->phone == $request->phone){
+                    return sendError('The phone has already been taken.', ['error'=>'user found.'],200);
+                }
+            }else{ 
+                return sendResponse(1, 'User not found.',200);
+            } 
+        }catch(\Throwable $e){
+            return sendError('Internal Server Error.',$e->getMessage(),500);
+        }
+    }
+    public function registerUser(Request $request){
+        try{
+            $validator = Validator::make($request->all(), [
+                'phone' => 'required',
+                'token' => 'required',
+                'email' => 'required|unique:users',
+                'phone' => 'required|unique:users',
+                'password' => 'required',
+                'name' => 'required',
+            ]);
+            if($validator->fails()){
+                return sendError('Validation Error.', $validator->errors(),422);       
+            }
+            $auth = app('firebase.auth');
+            $idTokenString = $request->input('token');
+            $verifiedIdToken = $auth->verifyIdToken($idTokenString);
+            try { 
+                $verifiedIdToken = $auth->verifyIdToken($idTokenString);
+
+            } catch (\InvalidArgumentException $e) {
+                return sendError('Unauthorized - Can\'t parse the token:', ['error'=>'Unauthorised'],200);
+            } catch (InvalidToken $e) { 
+                return sendError('Unauthorized - Token is invalide', ['error'=> $e->getMessage()],200);
+            }
+            $clams=$verifiedIdToken->Claims();
+            $uid = $clams->get('sub');
+            $user=new User();
+            $user->name=$request->name;
+            $user->email=$request->email;
+            $user->phone=$request->phone;
+            $user->visible_password=$request->password;
+            $user->password=Hash::make($request->password);
+            $user->role_id=3;
+            $user->firebase_uid=$uid;
+            $user->save();
+            return sendResponse(true, 'user saved.',200);
+        }catch(\Exception $e){
+            return sendError('Internal Server Error.',$e->getMessage(),500);
+        }
+    }
+
 }
