@@ -21,7 +21,8 @@ class ServiceController extends Controller
     public function getServices()
     {
         try {
-            $services = Service::where('user_id',Auth::id())->get();
+            // $services = Service::where('user_id',Auth::id())->get();
+            $services = Service::all();
             return sendResponse(['services' => $services],'Service data fetched');
         } catch (\Exception $e) {
             return sendError($e->getMessage(), 500);
