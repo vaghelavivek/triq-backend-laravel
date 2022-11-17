@@ -145,4 +145,33 @@ class OrderController extends Controller
             return sendError($e->getMessage(), 500);
         }
     }
+
+    public function addOrderComment(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            // return $request->all();
+            $validator = Validator::make($request->all(), [
+                'notes' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return sendError($validator->errors(), 403);
+            }
+          
+            $comment = new OrderUpdate();
+            $comment->user_id = Auth::id();
+            $comment->notes = $request->notes;
+            $comment->is_send_email = (boolean)$request->is_send_email;
+            $comment->is_personal_note = (boolean)$request->is_personal_note;
+            $attachment = $this->upload('attachment','attachment');
+            $comment->attachment  = $attachment;
+            $comment->save();
+            DB::commit();
+            $comment->user = Auth::user();
+            return sendResponse(['comment' => $comment], 'Commet Added', 200);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return sendError($e->getMessage(), 500);
+        }
+    }
 }

@@ -12,6 +12,6 @@ class Order extends Model
         return $this->hasMany(OrderDocument::class,"order_id");
     }
     public function order_updates() {
-        return $this->hasMany(OrderUpdate::class,"order_id");
+        return $this->hasMany(OrderUpdate::class,"order_id")->with('user');
     }
 }
