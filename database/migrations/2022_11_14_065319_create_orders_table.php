@@ -17,8 +17,7 @@ return new class extends Migration
             $table->id();
             $table->integer('user_id')->nullable();
             $table->integer('service_id')->nullable();
-            $table->float('amount')->nullable();
-            $table->float('tax')->nullable();
+            $table->string('tenure')->nullable();
             $table->float('final_amount')->nullable();
             $table->string('payment_status')->nullable();
             $table->string('service_status')->nullable();

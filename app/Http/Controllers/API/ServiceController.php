@@ -31,9 +31,9 @@ class ServiceController extends Controller
     public function addService(Request $request){
         DB::beginTransaction();
         try{
+            // return json_decode($request->prices);
             $validator = Validator::make($request->all(), [
                 'title' => 'required',
-                'price' => 'required',
             ]);
             if ($validator->fails()) {
                 return sendError($validator->errors(),403);
@@ -50,8 +50,7 @@ class ServiceController extends Controller
             $service->title=$request->title;
             $service->description=$request->description;
             $service->country=$request->country;
-            $service->price=$request->price;
-            $service->tenure=$request->tenure;
+            $service->prices= $request->prices;
             if($request->hasfile('service_image')){
                 if($service->service_image){
                     $path = 'storage/'.$service->service_image;
@@ -144,7 +143,7 @@ class ServiceController extends Controller
                 else
                 return sendError('No Service data found', 200);
             }
-            return sendError('No Service data found', 200);
+            return sendError('User Not has country Data', 200);
         } catch (\Exception $e) {
             return sendError($e->getMessage(), 500);
         }

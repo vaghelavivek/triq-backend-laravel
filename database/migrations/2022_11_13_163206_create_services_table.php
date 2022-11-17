@@ -20,8 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('country')->nullable();
             $table->string('service_image')->nullable();
-            $table->float('price')->nullable();
-            $table->string('tenure')->nullable();
+            $table->json('prices')->nullable();
             $table->timestamps();
         });
     }

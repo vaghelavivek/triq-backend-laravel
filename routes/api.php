@@ -43,6 +43,7 @@ Route::group(['middleware' => ['auth:api']], function () {
         Route::post('order/update-order', 'updateOrder');
         Route::get('order/delete-order/{order_id}', 'deleteOrder');
         Route::get('order/get-order-by-id/{order_id}', 'getOrderById');
+        Route::post('order/get-order-document-by-serviceid', 'getOrderDocumentByServiceId');
     });
     Route::group(['prefix' => 'user', 'middleware' => ['checkRole:super-admin']], function () {
         Route::controller(UserController::class)->group(function () {

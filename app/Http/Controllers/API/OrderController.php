@@ -33,10 +33,11 @@ class OrderController extends Controller
     {
         DB::beginTransaction();
         try {
+            // return $request->all();
             $validator = Validator::make($request->all(), [
                 'user_id' => 'required',
                 'service_id' => 'required',
-                'amount' => 'required',
+                'final_amount' => 'required',
             ]);
             if ($validator->fails()) {
                 return sendError($validator->errors(), 403);
@@ -51,54 +52,40 @@ class OrderController extends Controller
             }
             $order->user_id = $request->user_id ? (int)$request->user_id : Auth::id();
             $order->service_id = (int)$request->service_id;
-            $order->amount = (float)$request->amount;
-            $order->tax = (float)$request->tax;
+            $order->tenure = $request->tenure;
             $order->final_amount = (float)$request->final_amount;
-            $order->payment_status = (float)$request->payment_status;
-            $order->service_status = (float)$request->service_status;
+            $order->final_amount = (float)$request->final_amount;
+            $order->payment_status = $request->payment_status;
+            $order->service_status = $request->service_status;
             if ($order->save()) {
-                // $order_documents = json_decode($request->order_documents);
-                // return $order_documents;
-                foreach ($request->except(['id', 'user_id', 'service_id', 'amount', 'tax', 'final_amount', 'payment_status', 'service_status']) as $key => $value) {
-                    $order_doc =
-                        $explode = explode('_', $key);
-                    $service_documents_id = isset($explode[2]) ? $explode[2] : null;
-                    $doc = new OrderDocument();
-                    $doc->order_id = $order->id;
-                    $doc->service_documents_id = $service_documents_id;
-                    // if ($doc->uploaded_file) {
-                    //     $path = 'storage/' . $doc->uploaded_file;
-                    //     if (file_exists(public_path($path))) {
-                    //         unlink(public_path($path));
-                    //     }
-                    // }
-                    $file_data = $this->upload('uploaded_file', $key);
-                    // return $file_data;
-                    $doc->uploaded_file  = $file_data;
-                    $doc->save();
+                foreach ($request->except(['id', 'user_id', 'service_id', 'tenure', 'final_amount', 'payment_status', 'service_status']) as $key => $value) {
+                    if ($value && $value != 'null') {
+                        $order_doc = $explode = explode('_', $key);
+                        $service_documents_id = isset($explode[2]) ? $explode[2] : null;
+
+                        $doc = OrderDocument::where('order_id',$order->id)->where('service_documents_id',$service_documents_id)->first();
+                        if(!$doc){
+                            $doc = new OrderDocument();
+                            $doc->order_id = $order->id;    
+                            $doc->service_documents_id = $service_documents_id;
+                            $file_data = $this->upload('uploaded_file', $key);
+                            $doc->uploaded_file  = $file_data;
+                            $doc->save();
+                        }else{
+                            if($doc->uploaded_file){
+                                $path = 'storage/'.$doc->uploaded_file;
+                                if(file_exists(public_path($path))){
+                                    unlink(public_path($path));
+                                }
+                            }
+                            $file_data = $this->upload('uploaded_file', $key);
+                            $doc->uploaded_file  = $file_data;
+                            $doc->update();
+                        }
+                       
+                       
+                    }
                 }
-                // foreach($order_documents as $doc_data){
-                //     if($doc_data->id){
-                //         $doc = OrderDocument::find($doc_data->id);
-                //         if(!$doc)
-                //         $doc = new OrderDocument();
-                //     }else{
-                //         $doc = new OrderDocument();
-                //     }
-                //     $doc->order_id = $doc_data->order_id;
-                //     $doc->service_documents_id = $doc_data->service_documents_id;
-                //     if($request->hasfile('uploaded_file')){
-                //         if($doc->uploaded_file){
-                //             $path = 'storage/'.$doc->uploaded_file;
-                //             if(file_exists(public_path($path))){
-                //                 unlink(public_path($path));
-                //             }
-                //         }
-                //         $file_data=$this->upload('images/uploaded_file', 'uploaded_file');
-                //         $doc->uploaded_file  = $file_data;
-                //     }
-                //     $doc->save();
-                // }
             }
             DB::commit();
             return sendResponse(['order' => $order], 'Order Created', 200);
@@ -122,8 +109,8 @@ class OrderController extends Controller
         try {
             $delete = Order::where('id', $order_id)->delete();
             if ($delete) {
-                OrderDocument::where('order_id',$order_id)->delete();
-                OrderUpdate::where('order_id',$order_id)->delete();
+                OrderDocument::where('order_id', $order_id)->delete();
+                OrderUpdate::where('order_id', $order_id)->delete();
                 return sendResponse([], 'Order Deleted', 200);
             }
             return sendError('Order not delete', 500);
@@ -132,14 +119,28 @@ class OrderController extends Controller
         }
     }
 
-    public function getServiceById($service_id)
+    public function getOrderById($order_id)
     {
         try {
-            $service = Service::with('service_document')->find($service_id);
-            if ($service)
-                return sendResponse(['service' => $service], 'Service data fetched');
+            $order = Order::with('order_documents', 'order_updates')->find($order_id);
+            if ($order)
+                return sendResponse(['order' => $order], 'Order data fetched');
             else
-                return sendError('No Service data found', 200);
+                return sendError('No Order data found', 200);
+        } catch (\Exception $e) {
+            return sendError($e->getMessage(), 500);
+        }
+    }
+
+    public function getOrderDocumentByServiceId(Request $request)
+    {
+        try {
+            $order_id = $request->order_id;
+            $order_document = OrderDocument::where('order_id',$order_id)->get();
+            if ($order_document)
+                return sendResponse(['order_document' => $order_document], 'Order data fetched');
+            else
+                return sendError('No Order data found', 200);
         } catch (\Exception $e) {
             return sendError($e->getMessage(), 500);
         }
