@@ -142,11 +142,11 @@ class ServiceController extends Controller
                 if($services)
                 return sendResponse(['services' => $services],'Service data fetched');
                 else
-                return sendError('No Service data found', 200);
+                return sendError('No Service data found',[], 200);
             }
-            return sendError('User Not has country Data', 200);
+            return sendError('User Not has country Data',[], 200);
         } catch (\Exception $e) {
-            return sendError($e->getMessage(), 500);
+            return sendError($e->getMessage(),[], 500);
         }
     }
 }

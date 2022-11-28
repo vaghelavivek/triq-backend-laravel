@@ -160,6 +160,7 @@ class OrderController extends Controller
           
             $comment = new OrderUpdate();
             $comment->user_id = Auth::id();
+            $comment->order_id = $request->order_id;
             $comment->notes = $request->notes;
             $comment->is_send_email = (boolean)$request->is_send_email;
             $comment->is_personal_note = (boolean)$request->is_personal_note;
