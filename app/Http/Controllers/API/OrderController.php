@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderDocument;
+use App\Models\OrderTransaction;
 use App\Models\OrderUpdate;
 use App\Models\Service;
 use App\Models\ServiceDocument;
@@ -174,5 +175,11 @@ class OrderController extends Controller
             DB::rollback();
             return sendError($e->getMessage(), 500);
         }
+    }
+
+    public function _saveOrdertransction(Request $request){
+        $tran= new OrderTransaction();
+        $tran->order_id = $request->order_id;
+       $tran->save();
     }
 }

@@ -46,7 +46,7 @@ Route::group(['middleware' => ['auth:api']], function () {
         Route::post('order/get-order-document-by-serviceid', 'getOrderDocumentByServiceId');
         Route::post('order/add-order-comment', 'addOrderComment');
     });
-    Route::group(['prefix' => 'user', 'middleware' => ['checkRole:super-admin']], function () {
+    Route::group(['prefix' => 'user'], function () {
         Route::controller(UserController::class)->group(function () {
             Route::post('add-user', 'addUser');
             Route::post('update-user', 'updateUser');
@@ -57,4 +57,15 @@ Route::group(['middleware' => ['auth:api']], function () {
 
         });
     });
+    // Route::group(['prefix' => 'user', 'middleware' => ['checkRole:super-admin']], function () {
+    //     Route::controller(UserController::class)->group(function () {
+    //         Route::post('add-user', 'addUser');
+    //         Route::post('update-user', 'updateUser');
+    //         Route::get('get-user-by-id/{id}', 'getUserById');
+    //         Route::get('get-users', 'getAllUsers');
+    //         Route::post('delete-user', 'deleteUser');
+    //         Route::get('get-user-names-list', 'getUsersNamesList');
+
+    //     });
+    // });
 });
