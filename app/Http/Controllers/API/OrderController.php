@@ -16,7 +16,7 @@ use Image;
 use DB;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\Auth;
-
+use App\PayTm\PaytmChecksum;
 
 class OrderController extends Controller
 {
@@ -54,7 +54,6 @@ class OrderController extends Controller
             $order->user_id = $request->user_id ? (int)$request->user_id : Auth::id();
             $order->service_id = (int)$request->service_id;
             $order->tenure = $request->tenure;
-            $order->final_amount = (float)$request->final_amount;
             $order->final_amount = (float)$request->final_amount;
             $order->payment_status = $request->payment_status;
             $order->service_status = $request->service_status;
@@ -180,6 +179,77 @@ class OrderController extends Controller
     public function _saveOrdertransction(Request $request){
         $tran= new OrderTransaction();
         $tran->order_id = $request->order_id;
-       $tran->save();
+        $tran->save();
     }
+    public function addUserOrder(Request $request){
+            DB::beginTransaction();
+            try {
+                $validator = Validator::make($request->all(), [
+                    'service_id' => 'required',
+                    'tenure' => 'required',
+                    'final_amount' => 'required',
+                    'paytm_order_id' => 'required',
+                ]);
+                if ($validator->fails()) {
+                    return sendError($validator->errors(), 403);
+                }
+                    $paytmParams = array();
+                    $paytmParams["body"] = array(
+                        "mid" => env('PAYTM_MID'),
+                        "orderId" => $request->paytm_order_id,
+                    );
+                    $checksum = PaytmChecksum::generateSignature(json_encode($paytmParams["body"], JSON_UNESCAPED_SLASHES),env('PAYTM_KEY'));
+                    $paytmParams["head"] = array(
+                        "signature"	=> $checksum
+                    );
+                    $post_data = json_encode($paytmParams, JSON_UNESCAPED_SLASHES);
+                    $url = "https://securegw-stage.paytm.in/v3/order/status";
+                    $ch = curl_init($url);
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));  
+                    $response = curl_exec($ch);
+                    $res=json_decode($response);
+                    $isTraValid=false;
+                    if(isset($res->body) && isset($res->body->resultInfo) && isset($res->body->resultInfo->resultStatus)){
+                        if($res->body->resultInfo->resultStatus == 'TXN_SUCCESS'){
+                                $isTraValid=true;
+                        }
+                    }
+                    if(!$isTraValid){
+                        return sendError('Transaction is invalid',200);   
+                    }
+                    $order = new Order();
+                    $order->user_id = Auth::id();
+                    $order->service_id = (int)$request->service_id;
+                    $order->tenure = $request->tenure;
+                    $order->final_amount = (float)$request->final_amount;
+                    $order->payment_status = $request->payment_status;
+                    $order->service_status = $request->service_status;
+                    if($order->save()){
+                        $tran= new OrderTransaction();
+                        $tran->order_id = $order->id;
+                        $tran->transaction_id = $request->transaction_id;
+                        $tran->paytm_order_id = $request->paytm_order_id;
+                        $tran->bank_transaction_id = $request->bank_transaction_id;
+                        $tran->amount = $request->payment_amount;
+                        $tran->currency = $request->currency;
+                        $tran->payment_type = $request->payment_type;
+                        $tran->status = 'SALE';
+                        $tran->payment_type = 'PAYTM';
+                        $tran_details=[];
+                        $tran_details['bank_name']=$request->bank_name;
+                        $tran_details['gateway_name']=$request->gateway_name;
+                        $tran_details['payment_mode']=$request->payment_mode;
+                        $tran->transaction_details=json_encode($tran_details);
+                        $tran->save();
+                    }
+                    DB::commit();
+                return sendResponse(['order' =>$order], 'Order Placed', 200);
+            } catch (\Exception $e) {
+                DB::rollback();
+                return sendError($e->getMessage(), 500);
+            }
+    }  
 }

@@ -46,31 +46,27 @@ Route::group(['middleware' => ['auth:api']], function () {
         Route::get('order/get-order-by-id/{order_id}', 'getOrderById');
         Route::post('order/get-order-document-by-serviceid', 'getOrderDocumentByServiceId');
         Route::post('order/add-order-comment', 'addOrderComment');
+        Route::post('order/add-user-order', 'addUserOrder');
     });
     Route::group(['prefix' => 'user'], function () {
         Route::controller(UserController::class)->group(function () {
-            Route::post('add-user', 'addUser');
-            Route::post('update-user', 'updateUser');
-            Route::get('get-user-by-id/{id}', 'getUserById');
-            Route::get('get-users', 'getAllUsers');
-            Route::post('delete-user', 'deleteUser');
+            Route::get('get-users', 'getAllUsers');            
             Route::get('get-user-names-list', 'getUsersNamesList');
-            
+            Route::get('get-user-by-id/{id}', 'getUserById');
         });
     });
-    // Route::group(['prefix' => 'user', 'middleware' => ['checkRole:super-admin']], function () {
-    //     Route::controller(UserController::class)->group(function () {
-    //         Route::post('add-user', 'addUser');
-    //         Route::post('update-user', 'updateUser');
-    //         Route::get('get-user-by-id/{id}', 'getUserById');
-    //         Route::get('get-users', 'getAllUsers');
-    //         Route::post('delete-user', 'deleteUser');
-    //         Route::get('get-user-names-list', 'getUsersNamesList');
+    Route::group(['prefix' => 'user', 'middleware' => ['checkRole:super-admin']], function () {
+        Route::controller(UserController::class)->group(function () {
+            Route::post('add-user', 'addUser');
+            Route::post('update-user', 'updateUser');
+            Route::post('delete-user', 'deleteUser');
 
-    //     });
-    // });
-});
-
-Route::controller(PaymentController::class)->group(function () {
-    Route::get('create-checksum', 'createCheckSum');
+        });
+    });
+    Route::group(['prefix' => 'payment'], function () {
+        Route::controller(PaymentController::class)->group(function () {
+            Route::get('create-checksum', 'createCheckSum');
+            Route::post('create-transaction-token', 'createTransectionToken');
+        });
+    });
 });
