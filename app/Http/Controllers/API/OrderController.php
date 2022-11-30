@@ -23,7 +23,10 @@ class OrderController extends Controller
     public function getOrders()
     {
         try {
-            $orders = Order::get();
+            if(Auth::user()->role_id ==3)
+                $orders = Order::with('user','service')->where('user_id',Auth::id())->get();
+            else
+                $orders = Order::with('user', 'service')->get();
             return sendResponse(['orders' => $orders], 'Order data fetched');
         } catch (\Exception $e) {
             return sendError($e->getMessage(), 500);

@@ -14,4 +14,10 @@ class Order extends Model
     public function order_updates() {
         return $this->hasMany(OrderUpdate::class,"order_id")->with('user');
     }
+    public function user() {
+        return $this->belongsTo(User::class,"user_id");
+    }
+    public function service() {
+        return $this->belongsTo(Service::class,"service_id");
+    }
 }
