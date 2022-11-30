@@ -6,6 +6,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\ServiceController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,7 +55,11 @@ Route::group(['middleware' => ['auth:api']], function () {
             Route::get('get-users', 'getAllUsers');
             Route::post('delete-user', 'deleteUser');
             Route::get('get-user-names-list', 'getUsersNamesList');
-
+            
         });
     });
+});
+
+Route::controller(PaymentController::class)->group(function () {
+    Route::get('create-checksum', 'createCheckSum');
 });
