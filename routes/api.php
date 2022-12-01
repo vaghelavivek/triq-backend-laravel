@@ -38,16 +38,24 @@ Route::group(['middleware' => ['auth:api']], function () {
     });
 
     //Orders Routes
-    Route::controller(OrderController::class)->group(function () {
-        Route::get('order/get-orders', 'getOrders');
-        Route::post('order/add-order', 'addOrder');
-        Route::post('order/update-order', 'updateOrder');
-        Route::get('order/delete-order/{order_id}', 'deleteOrder');
-        Route::get('order/get-order-by-id/{order_id}', 'getOrderById');
-        Route::post('order/get-order-document-by-serviceid', 'getOrderDocumentByServiceId');
-        Route::post('order/add-order-comment', 'addOrderComment');
-        Route::post('order/add-user-order', 'addUserOrder');
+    Route::group(['prefix' => 'order'], function () {
+        Route::controller(OrderController::class)->group(function () {
+            Route::get('get-orders', 'getOrders');
+            Route::get('delete-order/{order_id}', 'deleteOrder');
+            Route::get('get-order-by-id/{order_id}', 'getOrderById');
+            Route::post('get-order-document-by-serviceid', 'getOrderDocumentByServiceId');
+            Route::post('add-order-comment', 'addOrderComment');
+            Route::post('add-user-order', 'addUserOrder');
+            Route::post('update-order', 'updateOrder');
+        });
     });
+
+    Route::group(['prefix' => 'order','middleware' => ['checkRole:super-admin']], function () {
+        Route::controller(OrderController::class)->group(function () {
+            Route::post('add-order', 'addOrder');
+        });
+    });
+
     Route::group(['prefix' => 'user'], function () {
         Route::controller(UserController::class)->group(function () {
             Route::get('get-users', 'getAllUsers');            

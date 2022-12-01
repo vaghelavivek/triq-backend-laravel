@@ -126,6 +126,15 @@ class OrderController extends Controller
     {
         try {
             $order = Order::with('order_documents', 'order_updates')->find($order_id);
+            $order_documents = [];
+            if($order->order_documents){
+                foreach ($order->order_documents as $key=> $order_doc){
+                    $service_doc = ServiceDocument::find($order_doc->service_documents_id);
+                    $order_documents[$key]['order_doc'] = $order_doc;
+                    $order_documents[$key]['order_doc']['service_doc'] = $service_doc;
+                }
+            }
+            $order->documents_data = $order_documents;
             if ($order)
                 return sendResponse(['order' => $order], 'Order data fetched');
             else
@@ -254,5 +263,55 @@ class OrderController extends Controller
                 DB::rollback();
                 return sendError($e->getMessage(), 500);
             }
-    }  
+    }
+
+    public function updateOrder(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return sendError($validator->errors(), 403);
+            }
+            $order_id = (int)$request->id;
+            $order = Order::find($order_id);
+            if ($order){
+                foreach ($request->except(['id']) as $key => $value) {
+                    if ($value && $value != 'null') {
+                        $order_doc = $explode = explode('_', $key);
+                        $service_documents_id = isset($explode[2]) ? $explode[2] : null;
+
+                        $doc = OrderDocument::where('order_id', $order->id)->where('service_documents_id', $service_documents_id)->first();
+                        if (!$doc) {
+                            $doc = new OrderDocument();
+                            $doc->order_id = $order->id;
+                            $doc->service_documents_id = $service_documents_id;
+                            $file_data = $this->upload('uploaded_file', $key);
+                            $doc->uploaded_file  = $file_data;
+                            $doc->save();
+                        } else {
+                            if ($doc->uploaded_file) {
+                                $path = 'storage/' . $doc->uploaded_file;
+                                if (file_exists(public_path($path))) {
+                                    unlink(public_path($path));
+                                }
+                            }
+                            $file_data = $this->upload('uploaded_file', $key);
+                            $doc->uploaded_file  = $file_data;
+                            $doc->update();
+                        }
+                    }
+                }
+                DB::commit();
+                return sendResponse(['order' => $order], 'Order Created', 200);
+            }else{
+                return sendError('Order not found',[], 200);
+            }
+        } catch (\Exception $e) {
+            DB::rollback();
+            return sendError($e->getMessage(), 500);
+        }
+    }
 }
