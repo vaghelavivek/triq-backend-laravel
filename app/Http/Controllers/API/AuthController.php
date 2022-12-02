@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\UserBusiness;
 use Validator;
 use Auth;
 use Illuminate\Support\Facades\Hash;
@@ -24,16 +25,17 @@ class AuthController extends Controller
             }
             if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
                 $user = Auth::user();
-                $user_data=$user->only([
-                                        'id',
-                                        'name',
-                                        'email',
-                                        'role_id',
-                                        'phone',
-                                        'language',
-                                    ]);
+                // $user_data=$user->only([
+                //                         'id',
+                //                         'name',
+                //                         'email',
+                //                         'role_id',
+                //                         'phone',
+                //                         'language',
+                //                     ]);
                 $accesstoken =  $user->createToken('authToken')->accessToken;
-                $data['user_data']=$user_data;
+                $user->user_businesses = UserBusiness::where('user_id',$user->id)->first();
+                $data['user_data']=$user;
                 $data['accesstoken']=$accesstoken;
                 return sendResponse($data, 'User login successfully.',200);
             } 

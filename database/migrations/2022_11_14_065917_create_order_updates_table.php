@@ -17,9 +17,11 @@ return new class extends Migration
             $table->id();
             $table->integer('user_id')->nullable();
             $table->integer('order_id')->nullable();
+            $table->integer('parent_id')->nullable();
             $table->text('notes')->nullable();
             $table->tinyInteger('is_send_email')->nullable();
             $table->tinyInteger('is_personal_note')->nullable();
+            $table->tinyInteger('add_to_profile')->nullable();
             $table->string('attachment')->nullable();
             $table->timestamps();
         });

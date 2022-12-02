@@ -172,10 +172,12 @@ class OrderController extends Controller
           
             $comment = new OrderUpdate();
             $comment->user_id = Auth::id();
+            $comment->parent_id = Auth::id();
             $comment->order_id = $request->order_id;
             $comment->notes = $request->notes;
             $comment->is_send_email = (boolean)$request->is_send_email;
             $comment->is_personal_note = (boolean)$request->is_personal_note;
+            $comment->add_to_profile = (boolean)$request->add_to_profile;
             $attachment = $this->upload('attachment','attachment');
             $comment->attachment  = $attachment;
             $comment->save();
@@ -311,6 +313,16 @@ class OrderController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollback();
+            return sendError($e->getMessage(), 500);
+        }
+    }
+
+    public function getProfileAttachment()
+    {
+        try {
+            $attachments = OrderUpdate::where('parent_id', Auth::id())->where('add_to_profile',1)->get();
+            return sendResponse(['attachments' => $attachments], 'Attachments data fetched');
+        } catch (\Exception $e) {
             return sendError($e->getMessage(), 500);
         }
     }

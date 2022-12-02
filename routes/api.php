@@ -47,6 +47,7 @@ Route::group(['middleware' => ['auth:api']], function () {
             Route::post('add-order-comment', 'addOrderComment');
             Route::post('add-user-order', 'addUserOrder');
             Route::post('update-order', 'updateOrder');
+            Route::get('get-profile-attachment', 'getProfileAttachment');
         });
     });
 

@@ -131,7 +131,9 @@ class UserController extends Controller
                 $userb->save();
             }
             DB::commit();
-        return sendResponse([], 'User Updated.',200);
+            $userData = $user;
+            $userData->user_businesses = $userb;
+        return sendResponse($userData, 'User Updated.',200);
         }catch(\Throwable $e){
             DB::rollback();
             return sendError('Internal Server Error.',$e->getMessage(),500);
