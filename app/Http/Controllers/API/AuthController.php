@@ -10,6 +10,9 @@ use Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Firebase\Auth\Token\Exception\InvalidToken;
+use Illuminate\Support\Facades\Password;
+use App\Http\Requests\ResetPasswordRequest;
+
 
 class AuthController extends Controller
 {
@@ -174,6 +177,85 @@ class AuthController extends Controller
             $user->firebase_uid=$uid;
             $user->save();
             return sendResponse(true, 'user saved.',200);
+        }catch(\Exception $e){
+            return sendError('Internal Server Error.',$e->getMessage(),500);
+        }
+    }
+    public function SendEmailLink(Request $request){
+        try{
+            $rules = ['email' => 'required|email'];
+            $validator = Validator::make($request->all() , $rules);
+            if ($validator->fails())
+            {
+                return sendError('Validation Error.', $validator->errors(),422);
+            }
+            $user=User::where('email',$request->email)->first();
+            if(!$user){
+                return sendError('Email not Found.', ['error'=>'Email not Found'],200);
+            }
+            $credentials=$request->all();
+            $send=Password::sendResetLink($credentials);
+            if($send){
+               return sendResponse(true, 'Reset password link sent on your email.',200);
+            }else{
+                return sendError('Something went wrong.', ['error'=>'Something went wrong'],200);
+            }
+        }catch(\Exception $e){
+            return sendError('Internal Server Error.',$e->getMessage(),500);
+        }
+    }
+    public function reset(ResetPasswordRequest $request) {
+        try{
+        $reset_password_status = Password::reset($request->validated(), function ($user, $password) {
+            $user->password = bcrypt($password);
+            $user->visible_password = $password;
+            $user->update();
+        });
+        if ($reset_password_status == Password::INVALID_TOKEN) {
+              return sendError('Reset Token is Invalid.', ['error'=>'Reset Token is Invalid'],200);
+        }
+        return sendResponse(true, 'Password has been changed successfully.',200);
+
+        }catch(\Exception $e){
+            return sendError('Internal Server Error.',$e->getMessage(),500);
+        }
+    }
+    public function resetMobile(Request $request){
+        try{
+            $validator = Validator::make($request->all(), [
+                'phone' => 'required',
+                'token' => 'required',
+                'password'=>'required'
+            ]);
+            if($validator->fails()){
+                return sendError('Validation Error.', $validator->errors(),422);       
+            }
+            $auth = app('firebase.auth');
+            $idTokenString = $request->input('token');
+            $verifiedIdToken = $auth->verifyIdToken($idTokenString);
+            try { 
+                $verifiedIdToken = $auth->verifyIdToken($idTokenString);
+
+            } catch (\InvalidArgumentException $e) {
+                return sendError('Unauthorized - Can\'t parse the token:', ['error'=>'Unauthorised'],200);
+            } catch (InvalidToken $e) { 
+                return sendError('Unauthorized - Token is invalide', ['error'=> $e->getMessage()],200);
+            }
+            $clams=$verifiedIdToken->Claims();
+            $uid = $clams->get('sub');
+            $user=User::where('firebase_uid',$uid)->where('phone',$request->phone)->first();
+            if(!$user){
+                $user=User::where('phone',$request->phone)->first();
+            }
+            if($user){
+                $user->firebase_uid=$uid;
+                $user->password = bcrypt($request->password);
+                $user->visible_password = $request->password;
+                $user->update();
+                return sendResponse(true, 'Password has been changed successfully.',200);
+            }
+
+          return sendError('invalid details.', ['error'=>'Unauthorised'],200);
         }catch(\Exception $e){
             return sendError('Internal Server Error.',$e->getMessage(),500);
         }

@@ -25,6 +25,9 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('get-user-by-phone', 'getUserByPhone');
     Route::post('get-user-by-email', 'getUserByEmail');
     Route::post('register-user', 'registerUser');
+    Route::post('send-email-reset-link','SendEmailLink');
+    Route::post('reset-password','reset');
+    Route::post('reset-password-mobile','resetMobile');
 });
 
 Route::group(['middleware' => ['auth:api']], function () {
