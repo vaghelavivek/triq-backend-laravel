@@ -307,7 +307,7 @@ class OrderController extends Controller
                     }
                 }
                 DB::commit();
-                return sendResponse(['order' => $order], 'Order Created', 200);
+                return sendResponse(['order' => $order], 'Order Updated', 200);
             }else{
                 return sendError('Order not found',[], 200);
             }
